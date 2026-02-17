@@ -1,7 +1,9 @@
 package br.com.bytestorm.mark_point.entity;
 
 import br.com.bytestorm.mark_point.enums.RoleEnum;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -11,7 +13,6 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -23,53 +24,77 @@ import java.util.UUID;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class User implements UserDetails {
+public class User extends BaseEntity implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
     private String name;
+
+    @JsonIgnore
     private String password;
+
+    @Column(nullable = false, unique = true)
+    @Email(message = "E-mail inválido.")
     private String email;
     private String phone;
+
+    @Column(unique = true)
     private String googleId;
+
+    @Column(unique = true)
     private String pushNotificationId;
     private Boolean isActive;
 
-    @Column(nullable = false)
-    private Instant createdAt;
-
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private RoleEnum role;
 
     @OneToMany(
             mappedBy = "user",
             cascade = CascadeType.ALL,
-            orphanRemoval = true
+            orphanRemoval = true,
+            fetch = FetchType.LAZY
     )
     private List<Ticket> tickets = new ArrayList<>();
 
+
+    public User(String name, String email, String phone, String googleId, String pushNotificationId) {
+        this.name = name;
+        this.email = email;
+        this.phone = phone;
+        this.googleId = googleId;
+        this.pushNotificationId = pushNotificationId;
+    }
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        if (this.role == RoleEnum.ADMIN || this.role == RoleEnum.SUPPORT || this.role == RoleEnum.DEVELOPER) return List.of(
-                new SimpleGrantedAuthority("ROLE_ADMIN"),
-                new SimpleGrantedAuthority("ROLE_COMPANY"),
-                new SimpleGrantedAuthority("ROLE_BASIC")
-        );
-        if (this.role == RoleEnum.COMPANY) return List.of(
-                new SimpleGrantedAuthority("ROLE_COMPANY"),
-                new SimpleGrantedAuthority("ROLE_BASIC")
-        );
-        if (this.role == RoleEnum.CUSTOMER) return List.of(
-                new SimpleGrantedAuthority("ROLE_CUSTOMER"),
-                new SimpleGrantedAuthority("ROLE_BASIC")
-        );
-        else return List.of(new SimpleGrantedAuthority("ROLE_BASIC"));
+        return switch (role) {
+            case ADMIN, SUPPORT, DEVELOPER -> List.of(
+                    new SimpleGrantedAuthority("ROLE_ADMIN"),
+                    new SimpleGrantedAuthority("ROLE_COMPANY"),
+                    new SimpleGrantedAuthority("ROLE_BASIC")
+            );
+            case COMPANY -> List.of(
+                    new SimpleGrantedAuthority("ROLE_COMPANY"),
+                    new SimpleGrantedAuthority("ROLE_BASIC")
+            );
+            case CUSTOMER -> List.of(
+                    new SimpleGrantedAuthority("ROLE_CUSTOMER"),
+                    new SimpleGrantedAuthority("ROLE_BASIC")
+            );
+            default -> List.of(new SimpleGrantedAuthority("ROLE_BASIC"));
+        };
     }
 
     @PrePersist
     public void prePersist() {
-        if (createdAt == null) createdAt = Instant.now();
+        if (role == null) role = RoleEnum.BASIC;
+        if (isActive == null) isActive = true;
+    }
+
+    private boolean active() {
+        return Boolean.TRUE.equals(isActive);
     }
 
     @Override
@@ -84,21 +109,21 @@ public class User implements UserDetails {
 
     @Override
     public boolean isAccountNonExpired() {
-        return isActive;
+        return active();
     }
 
     @Override
     public boolean isAccountNonLocked() {
-        return isActive;
+        return active();
     }
 
     @Override
     public boolean isCredentialsNonExpired() {
-        return isActive;
+        return active();
     }
 
     @Override
     public boolean isEnabled() {
-        return isActive;
+        return active();
     }
 }

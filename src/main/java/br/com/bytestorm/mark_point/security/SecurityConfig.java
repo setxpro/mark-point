@@ -26,8 +26,11 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 public class SecurityConfig {
 
-    @Autowired(required = false)
-    SecurityFilter securityFilter;
+    private final SecurityFilter securityFilter;
+
+    public SecurityConfig(SecurityFilter securityFilter) {
+        this.securityFilter = securityFilter;
+    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) {
@@ -56,6 +59,20 @@ public class SecurityConfig {
                     .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                     .authorizeHttpRequests(authorize ->
                             authorize
+                                    // TODO: TEST ENDPOINTS
+                                    .requestMatchers(HttpMethod.POST, Const.USER).permitAll()
+                                    .requestMatchers(HttpMethod.PATCH, Const.USER + "/**").permitAll()
+                                    .requestMatchers(HttpMethod.GET, Const.USER + "/**").permitAll()
+                                    .requestMatchers(HttpMethod.GET, Const.USER).permitAll()
+                                    .requestMatchers(HttpMethod.DELETE, Const.USER + "/**").permitAll()
+
+                                    // TODO: TEST ENDPOINTS
+                                    .requestMatchers(HttpMethod.POST, Const.COMPANY).permitAll()
+                                    .requestMatchers(HttpMethod.PATCH, Const.COMPANY + "/**").permitAll()
+                                    .requestMatchers(HttpMethod.GET, Const.COMPANY + "/**").permitAll()
+                                    .requestMatchers(HttpMethod.GET, Const.COMPANY).permitAll()
+                                    .requestMatchers(HttpMethod.DELETE, Const.COMPANY + "/**").permitAll()
+
                                     .requestMatchers(HttpMethod.POST, Const.AUTH + "/sign-in").permitAll()
                                     .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                                     .anyRequest().authenticated()

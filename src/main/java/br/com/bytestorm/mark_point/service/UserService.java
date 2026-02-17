@@ -1,16 +1,16 @@
 package br.com.bytestorm.mark_point.service;
 
-import br.com.bytestorm.user_ms.entity.dto.CustomUserDTO;
-import br.com.bytestorm.user_ms.entity.dto.MessageDTO;
-import br.com.bytestorm.user_ms.entity.dto.UpdateUserDTO;
-import br.com.bytestorm.user_ms.entity.dto.UserDTO;
+import br.com.bytestorm.mark_point.entity.User;
+import br.com.bytestorm.mark_point.entity.dto.ListUsersDTO;
+import br.com.bytestorm.mark_point.entity.dto.UserDTO;
 
 import java.util.List;
+import java.util.UUID;
 
 public interface UserService {
-    MessageDTO save(UserDTO req);
-    List<CustomUserDTO> findAll();
-    CustomUserDTO findOne(Long id);
-    MessageDTO update(Long id, UpdateUserDTO req);
-    MessageDTO delete(Long id);
+    void create(UserDTO userDTO);
+    void update(UUID oid, UserDTO userDTO);
+    List<ListUsersDTO> list();
+    ListUsersDTO findOne(UUID uid);
+    void delete(UUID uid);
 }

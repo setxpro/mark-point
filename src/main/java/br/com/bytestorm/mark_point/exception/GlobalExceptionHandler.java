@@ -7,6 +7,7 @@ import org.hibernate.ObjectNotFoundException;
 import org.hibernate.exception.SQLGrammarException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -31,6 +32,13 @@ public class GlobalExceptionHandler {
     public ResponseEntity<StandarError> trataErros(ServiceException ex, Exception e) {
         final ErrorMessage errorMessage = buildErrorMessage(e, ex.getEnumException());
         return ResponseEntity.status(errorMessage.getStatus()).body(errorMessage);
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<StandarError> handleJsonParse(HttpMessageNotReadableException ex) {
+        ErrorMessage error = buildErrorMessage(ex, EnumException.BAD_REQUEST_400);
+        error.setMessage("JSON inválido: verifique os tipos dos campos (UUID deve estar no formato xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx).");
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 
     @ExceptionHandler(NegocioException.class)

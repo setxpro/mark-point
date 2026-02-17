@@ -70,10 +70,14 @@ public class SecurityFilter extends OncePerRequestFilter {
             }
 
             filterChain.doFilter(request, response);
-        } catch (Exception ex) {
+        } catch (com.auth0.jwt.exceptions.JWTVerificationException ex) {
+            // Token inválido/expirado -> 401 (isso sim é auth)
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            String json = new ObjectMapper().writeValueAsString(new MessageDTO(ex.getMessage(), HttpStatus.UNAUTHORIZED.value()));
+
+            String json = new ObjectMapper().writeValueAsString(
+                    new MessageDTO("Token inválido ou expirado.", HttpStatus.UNAUTHORIZED.value())
+            );
             response.getWriter().write(json);
         }
     }

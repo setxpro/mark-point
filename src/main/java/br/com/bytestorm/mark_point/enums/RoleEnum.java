@@ -2,6 +2,7 @@ package br.com.bytestorm.mark_point.enums;
 
 public enum RoleEnum {
     CUSTOMER(1L, "Cliente"),
+    BASIC(1L, "Iniciante"),
     ADMIN(2L, "Administrador"),
     SUPPORT(3L, "Suporte"),
     DEVELOPER(4L, "Desenvolvedor"),
